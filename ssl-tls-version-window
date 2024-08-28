@@ -37,3 +37,53 @@ To check which TLS versions are enabled or in use on IIS (Internet Information S
 3. You can also use the tool to enable or disable specific TLS versions.
 
 Would you like any help with interpreting the results?
+-----------------------------------------------------------------------------
+
+ps script :
+
+---------
+
+
+The command you ran should normally work, but if it doesn't show any output, it's likely because the specific registry keys or values don't exist on your system, which means those protocols may not be explicitly enabled or disabled. Here's an improved approach to ensure you get meaningful results:
+
+### Step-by-Step to Check TLS Versions on Windows
+
+1. **Open PowerShell as Administrator.**
+
+2. **Run the revised script below**, which includes checks to see if the keys exist and outputs relevant information:
+
+   ```powershell
+   # List of TLS protocols to check
+   $protocols = @("TLS 1.0", "TLS 1.1", "TLS 1.2", "TLS 1.3")
+
+   foreach ($protocol in $protocols) {
+       $clientKey = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\$protocol\Client"
+       $serverKey = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\$protocol\Server"
+
+       Write-Host "Checking $protocol settings:"
+
+       # Check if the Client and Server keys exist
+       if (Test-Path $clientKey) {
+           $clientSettings = Get-ItemProperty -Path $clientKey
+           Write-Host "  Client: Enabled = $($clientSettings.Enabled), DisabledByDefault = $($clientSettings.DisabledByDefault)"
+       } else {
+           Write-Host "  Client: Not configured"
+       }
+
+       if (Test-Path $serverKey) {
+           $serverSettings = Get-ItemProperty -Path $serverKey
+           Write-Host "  Server: Enabled = $($serverSettings.Enabled), DisabledByDefault = $($serverSettings.DisabledByDefault)"
+       } else {
+           Write-Host "  Server: Not configured"
+       }
+
+       Write-Host ""
+   }
+   ```
+
+### Explanation:
+
+- **Checks for Existence**: The script verifies if the protocol registry keys exist for both the Client and Server.
+- **Output Status**: If the keys are found, it will display the values for `Enabled` and `DisabledByDefault`. If the keys are missing, it will note that the protocol is not configured.
+
+Let me know if this provides the information you need or if you encounter any specific errors!
